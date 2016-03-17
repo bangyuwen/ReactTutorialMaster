@@ -13,7 +13,6 @@
   </head>
   <body>
     <div id="content"></div>
-    <script type="text/babel" src="scripts/example.js"></script>
     <script type="text/babel">
 
       var data = [
@@ -22,7 +21,24 @@
       ];
 
       var CommentBox = React.createClass({
-        getInitialState: function(){
+        loadCommentsFromServer: function() {
+          $.ajax({
+            url: this.props.url,
+            dataType: 'json',
+            cache: false,
+            success: function(data) {
+              this.setState({data: data});
+            }.bind(this),
+            error: function(xhr, status, err) {
+              console.error(this.props.url, status, err.toString());
+            }.bind(this)
+          });
+        },
+        componentDidMount: function() {
+          this.loadCommentsFromServer();
+          setInterval(this.loadCommentsFromServer, this.props.pollInterval);
+        },
+        getInitialState: function() {
           return {data: []}
         },
         render:  function() {
@@ -82,7 +98,7 @@
       });
 
       ReactDOM.render(
-        <CommentBox url="/api/comments" />,
+        <CommentBox url="http://localhost:3000/api/comments" pollInterval={2000} />,
         document.getElementById('content')
       );
 
